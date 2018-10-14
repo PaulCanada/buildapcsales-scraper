@@ -1,18 +1,20 @@
 import logging
 
 import praw
+import pprint
 
 
 class Scraper(object):
 
-    def __init__(self, settings, category=None, product=None, subreddit=None, count=10):
+    def __init__(self, settings, category=None, product=None, subreddit=None, count=10, skip_oos=False):
         self.category = category or ""
         self.product = product or ""
         self.subreddit = subreddit or "buildapcsales"
         self.reddit_client = None
         self.settings = settings
         self.current_subreddit = None
-        self.search_count = count or 10
+        self.search_count = count
+        self.skip_oos = skip_oos
 
         if not self.settings:
             logging.critical("No settings information loaded. Exiting.")
@@ -50,9 +52,17 @@ class Scraper(object):
 
     def check_for_category(self, submission):
         found = False
+        post = submission.title
 
-        submission_category = submission.title[submission.title.find("["):submission.title.find("]") + 1]
-        logging.debug(submission_category)
+        # Check for expired post.
+        if submission.link_flair_text and any(flair in submission.link_flair_text for flair in ['Expired', 'Out Of Stock', 'OOS']) and self.skip_oos:
+            logging.info("Deal: '{0}' is expired.".format(post))
+            return False
+
+        else:
+            submission_category = submission.link_flair_text or post[post.find("["):post.find("]") + 1]
+
+        logging.info(submission_category)
 
         if self.category.lower() in submission_category.lower():
             logging.debug("Category {0} found in {1}".format(self.category, submission.title))
@@ -69,7 +79,8 @@ class Scraper(object):
         for submission in submission_list:
             if self.check_for_category(submission) and self.check_for_product(submission):
                 found_one = True
-                logging.info("{0} was found: {1}".format(self.product, submission.shortlink))
+                logging.info("{0} was found: {1}\n{2}".format(self.product, submission.shortlink, submission.title))
+                # pprint.pprint(vars(submission))
 
         if not found_one:
             logging.info("No product deals were found for {0}.".format(self.product))

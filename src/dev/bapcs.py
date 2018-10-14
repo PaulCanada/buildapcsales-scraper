@@ -9,7 +9,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 def main():
     s = Settings()
-    scrap = Scraper(s, product="GTX 970", category="GPU", count=30)
+    scrap = Scraper(s, product="", category="CPU", count=30, skip_oos=True)
 
     # scrap.print_description()
 
