@@ -66,14 +66,7 @@ class Scraper(object):
         found_one = False
 
         for submission in submission_list:
-            category_found = self.check_for_category(submission)
-
-            if not category_found:
-                continue
-
-            product_found = self.check_for_product(submission)
-
-            if product_found:
+            if self.check_for_category(submission) and self.check_for_product(submission):
                 found_one = True
                 logging.info("{0} was found: {1}".format(self.product, submission.shortlink))
 
