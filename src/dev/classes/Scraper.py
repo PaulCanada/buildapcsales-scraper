@@ -5,20 +5,21 @@ import praw
 
 class Scraper(object):
 
-    def __init__(self, settings, category=None, product=None, subreddit=None):
+    def __init__(self, settings, category=None, product=None, subreddit=None, count=10):
         self.category = category or ""
         self.product = product or ""
         self.subreddit = subreddit or "buildapcsales"
         self.reddit_client = None
         self.settings = settings
         self.current_subreddit = None
+        self.search_count = count or 10
 
         if not self.settings:
             logging.critical("No settings information loaded. Exiting.")
             exit(2)
 
-        if not self.category.startswith("[") and not self.category.endswith("]"):
-            self.category = "[" + self.category + "]"
+        # if not self.category.startswith("[") and not self.category.endswith("]"):
+        #     self.category = "[" + self.category + "]"
 
         if not product:
             logging.warning("WARNING: No product specified. All posts may be returned.")
@@ -53,7 +54,7 @@ class Scraper(object):
         submission_category = submission.title[submission.title.find("["):submission.title.find("]") + 1]
         logging.debug(submission_category)
 
-        if self.category.lower() in submission_category:
+        if self.category.lower() in submission_category.lower():
             logging.debug("Category {0} found in {1}".format(self.category, submission.title))
             found = True
         # else:
@@ -62,7 +63,7 @@ class Scraper(object):
         return found
 
     def check_for_deal(self):
-        submission_list = self.get_new(count=30)
+        submission_list = self.get_new(count=self.search_count)
         found_one = False
 
         for submission in submission_list:
