@@ -17,21 +17,6 @@ class Scraper(object):
             logging.critical("No settings information loaded. Exiting.")
             exit(2)
 
-        self.category_list = [
-            "CPU",
-            "CPU Cooler",
-            "Cooler",
-            "GPU",
-            "SSD",
-            "HDD",
-            "PSU",
-            "Monitor",
-            "Prebuilt",
-            "Case",
-            "Motherboard",
-            "Mobo"
-        ]
-
         if not self.category.startswith("[") and not self.category.endswith("]"):
             self.category = "[" + self.category + "]"
 
