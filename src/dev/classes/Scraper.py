@@ -92,9 +92,9 @@ class Scraper(object):
     def _find_price(submission):
         m = re.search(r"\$\d+(?:\.\d+)?", submission.title)
         if m:
-            logging.info("Submission: {0} ### Price: {1}".format(submission.title, m.group()))
+            logging.debug("Submission: {0} ### Price: {1}".format(submission.title, m.group()))
         else:
-            logging.info("Bad format: {0}".format(submission.title))
+            logging.debug("Bad format: {0}".format(submission.title))
 
     def print_description(self):
         print(self.current_subreddit.description)
