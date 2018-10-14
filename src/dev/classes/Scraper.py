@@ -2,11 +2,12 @@ import logging
 
 import praw
 import pprint
+import re
 
 
 class Scraper(object):
 
-    def __init__(self, settings, category=None, product=None, subreddit=None, count=10, skip_oos=False):
+    def __init__(self, settings, category=None, product=None, subreddit=None, count=10, skip_oos=False, max_price=None):
         self.category = category or ""
         self.product = product or ""
         self.subreddit = subreddit or "buildapcsales"
@@ -15,6 +16,7 @@ class Scraper(object):
         self.current_subreddit = None
         self.search_count = count
         self.skip_oos = skip_oos
+        self.max_price = max_price
 
         if not self.settings:
             logging.critical("No settings information loaded. Exiting.")
@@ -53,16 +55,17 @@ class Scraper(object):
     def check_for_category(self, submission):
         found = False
         post = submission.title
+        self.find_price(submission)
 
         # Check for expired post.
         if submission.link_flair_text and any(flair in submission.link_flair_text for flair in ['Expired', 'Out Of Stock', 'OOS']) and self.skip_oos:
-            logging.info("Deal: '{0}' is expired.".format(post))
+            logging.debug("Deal: '{0}' is expired.".format(post))
             return False
 
         else:
             submission_category = submission.link_flair_text or post[post.find("["):post.find("]") + 1]
 
-        logging.info(submission_category)
+        logging.debug("Category: {0}".format(submission_category))
 
         if self.category.lower() in submission_category.lower():
             logging.debug("Category {0} found in {1}".format(self.category, submission.title))
@@ -84,6 +87,14 @@ class Scraper(object):
 
         if not found_one:
             logging.info("No product deals were found for {0}.".format(self.product))
+
+    @staticmethod
+    def find_price(submission):
+        m = re.search(r"\$\d+(?:\.\d+)?", submission.title)
+        if m:
+            logging.info("Submission: {0} ### Price: {1}".format(submission.title, m.group()))
+        else:
+            logging.info("Bad format: {0}".format(submission.title))
 
     def print_description(self):
         print(self.current_subreddit.description)
