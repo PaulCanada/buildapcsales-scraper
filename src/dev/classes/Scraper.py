@@ -37,12 +37,12 @@ class Scraper(object):
     def _load_subreddit(self):
         self.current_subreddit = self.reddit_client.subreddit(self.subreddit)
 
-    def get_new(self, count=10):
+    def _get_new(self, count=10):
         self._load_subreddit()
 
         return [submission for submission in self.current_subreddit.new(limit=count)]
 
-    def check_for_product(self, submission):
+    def _check_for_product(self, submission):
         found = False
         if self.product.lower() in submission.title.lower():
             logging.debug("Product {0} found in {1}".format(self.product, submission.title))
@@ -52,10 +52,10 @@ class Scraper(object):
 
         return found
 
-    def check_for_category(self, submission):
+    def _check_for_category(self, submission):
         found = False
         post = submission.title
-        self.find_price(submission)
+        self._find_price(submission)
 
         # Check for expired post.
         if submission.link_flair_text and any(flair in submission.link_flair_text for flair in ['Expired', 'Out Of Stock', 'OOS']) and self.skip_oos:
@@ -76,11 +76,11 @@ class Scraper(object):
         return found
 
     def check_for_deal(self):
-        submission_list = self.get_new(count=self.search_count)
+        submission_list = self._get_new(count=self.search_count)
         found_one = False
 
         for submission in submission_list:
-            if self.check_for_category(submission) and self.check_for_product(submission):
+            if self._check_for_category(submission) and self._check_for_product(submission):
                 found_one = True
                 logging.info("{0} was found: {1}\n{2}".format(self.product, submission.shortlink, submission.title))
                 # pprint.pprint(vars(submission))
@@ -89,7 +89,7 @@ class Scraper(object):
             logging.info("No product deals were found for {0}.".format(self.product))
 
     @staticmethod
-    def find_price(submission):
+    def _find_price(submission):
         m = re.search(r"\$\d+(?:\.\d+)?", submission.title)
         if m:
             logging.info("Submission: {0} ### Price: {1}".format(submission.title, m.group()))
